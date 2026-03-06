@@ -1,0 +1,6 @@
+fn name(stuff) {
+    let name = stuff + "test"
+    let number = 10+8
+    return name
+}
+
