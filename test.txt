@@ -1,7 +1,0 @@
-fn Eighteen() {
-    let number = 10+8
-    let meow = "meow"
-    let float = 15.9
-    return number
-}
-
