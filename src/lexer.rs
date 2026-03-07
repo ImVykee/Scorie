@@ -32,7 +32,8 @@ pub enum Token {
     RightBrace,   // }
     LeftSqBrace,  // [
     RightSqBrace, // ]
-    Comma,
+    Comma,        // ,
+    Colon,        // :
 
     EOF, // End Of File
 }
@@ -106,7 +107,7 @@ pub fn lex(input: String) -> Vec<Token> {
             'a'..='z' | 'A'..='Z' => lexer.push_and_increment(curr_char),
             '0'..='9' => lexer.push_and_increment(curr_char),
             '"' | '\'' => lexer.handle_string(),
-            '(' | ')' | '{' | '}' | '[' | ']' | ',' => {
+            '(' | ')' | '{' | '}' | '[' | ']' | ',' | ':' => {
                 lexer.flush();
                 lexer.tokens.push(match curr_char {
                     '(' => Token::LeftParen,
@@ -116,6 +117,7 @@ pub fn lex(input: String) -> Vec<Token> {
                     '[' => Token::LeftSqBrace,
                     ']' => Token::RightSqBrace,
                     ',' => Token::Comma,
+                    ':' => Token::Colon,
                     _ => unreachable!(),
                 });
                 lexer.increment();

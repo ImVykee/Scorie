@@ -60,6 +60,16 @@ pub enum Value {
     Str(String),
 }
 
+impl Value {
+    pub fn parse_type(&self) -> Type {
+        match self {
+            Value::Int(_) => Type::Int,
+            Value::Float(_) => Type::Float,
+            Value::Str(_) => Type::Str,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum BinaryOp {
     Add,

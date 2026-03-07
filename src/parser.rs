@@ -140,15 +140,31 @@ impl Parser {
     fn get_func_params_identifier(&mut self) -> Vec<(String, Type)> {
         let mut params: Vec<(String, Type)> = Vec::new();
         while self.current() != &Token::RightParen {
-            match self.current() {
-                Token::Identifier(n) => {
-                    params.push((n.clone(), Type::Unknown));
-                    self.increment();
-                    if self.current() == &Token::Comma {
-                        self.increment();
-                    }
-                }
+            let mut curr_param = (String::new(), Type::Unknown);
+            curr_param.0 = match self.current() {
+                Token::Identifier(n) => n.clone(),
                 _ => panic!("Expected parameter"),
+            };
+            self.increment();
+            if self.current() != &Token::Colon {
+                panic!("Expected ':' after parameter declaration");
+            };
+            self.increment();
+            curr_param.1 = match self.current() {
+                Token::Identifier(t) => match t.as_str() {
+                    "Int" => Type::Int,
+                    "Float" => Type::Float,
+                    "String" => Type::Str,
+                    _ => panic!("Unknown type {}", t),
+                },
+                _ => panic!("Expected type annotation"),
+            };
+            self.increment();
+            params.push(curr_param);
+            if self.current() == &Token::Comma {
+                self.increment();
+            } else if self.current() != &Token::RightParen {
+                panic!("Expected ',' as param separator or ')' as end of params declaration")
             }
         }
         params
