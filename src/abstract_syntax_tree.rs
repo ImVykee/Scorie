@@ -16,11 +16,11 @@ pub enum Expr {
     Let {
         name: String,
         value: Box<Expr>,
-        r#type: Option<Type>,
+        //r#type: Option<Type>,
     },
     FuncDef {
         name: String,
-        params: Vec<String>,
+        params: Vec<(String, Type)>,
         body: Box<Expr>,
         return_type: Option<Type>,
     },
@@ -39,6 +39,18 @@ pub enum Type {
     Str,
     Unknown,
     Void,
+}
+
+impl Type {
+    pub fn translate(&self) -> String {
+        match self {
+            Type::Int => String::from("i32"),
+            Type::Float => String::from("f64"),
+            Type::Str => String::from("String"),
+            Type::Unknown => panic!("Unknown type made it into code generation phase"),
+            Type::Void => String::from("()"),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

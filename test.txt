@@ -1,6 +1,7 @@
-fn name(stuff) {
-    let name = stuff + "test"
+fn Eighteen() {
     let number = 10+8
-    return name
+    let meow = "meow"
+    let float = 15.9
+    return number
 }
 

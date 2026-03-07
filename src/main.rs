@@ -7,6 +7,15 @@ mod parser;
 mod type_checker;
 
 fn main() {
+    compile();
+}
+
+fn compile() {
+    let input = read_to_string("test.txt").unwrap();
+    codegen::generate_rust(parser::parse(lexer::lex(input)));
+}
+
+fn test_step_by_step() {
     let input = read_to_string("test.txt").unwrap();
     let tokens = lexer::lex(input);
     println!("lexed result : {:?} \n", tokens);

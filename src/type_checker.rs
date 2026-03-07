@@ -126,11 +126,7 @@ impl TypeChecker {
 
     fn check_statement(&mut self, stmt: &Expr) -> Type {
         match stmt {
-            Expr::Let {
-                name,
-                value,
-                r#type,
-            } => {
+            Expr::Let { name, value } => {
                 let vartype = self.check_expression(value);
                 self.current_scope().insert(name.clone(), vartype);
                 Type::Void
@@ -143,12 +139,12 @@ impl TypeChecker {
             } => {
                 self.enter_scope();
                 for param in params {
-                    self.current_scope().insert(param.clone(), Type::Unknown);
+                    self.current_scope().insert(param.0.clone(), Type::Unknown);
                 }
                 self.check_expression(body);
                 let mut param_types: Vec<Type> = Vec::new();
                 for param in params {
-                    param_types.push(self.current_scope().get(param).unwrap().clone());
+                    param_types.push(self.current_scope().get(&param.0).unwrap().clone());
                 }
                 let return_type = self.current_return_type.take().unwrap_or(Type::Void);
                 let new_sig = FuncSignature {

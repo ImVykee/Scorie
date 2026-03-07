@@ -137,12 +137,12 @@ impl Parser {
         args
     }
 
-    fn get_func_params_identifier(&mut self) -> Vec<String> {
-        let mut params: Vec<String> = Vec::new();
+    fn get_func_params_identifier(&mut self) -> Vec<(String, Type)> {
+        let mut params: Vec<(String, Type)> = Vec::new();
         while self.current() != &Token::RightParen {
             match self.current() {
                 Token::Identifier(n) => {
-                    params.push(n.clone());
+                    params.push((n.clone(), Type::Unknown));
                     self.increment();
                     if self.current() == &Token::Comma {
                         self.increment();
@@ -165,7 +165,7 @@ impl Parser {
             Token::LeftParen => self.increment(),
             _ => panic!("Expected '(' after function name"),
         };
-        let params: Vec<String> = self.get_func_params_identifier();
+        let params: Vec<(String, Type)> = self.get_func_params_identifier();
         self.increment();
         match self.current() {
             Token::LeftBrace => self.increment(),
@@ -205,7 +205,6 @@ impl Parser {
         Expr::Let {
             name,
             value: Box::new(val),
-            r#type: None,
         }
     }
 }

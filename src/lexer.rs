@@ -62,7 +62,7 @@ impl Lexer {
             "fn" => Token::Fn,
             "return" => Token::Return,
             _ => {
-                if self.token.chars().all(|c| c.is_numeric()) {
+                if self.token.chars().all(|c| c.is_numeric() || c == '.') {
                     Token::Number(String::from(&self.token))
                 } else {
                     Token::Identifier(String::from(&self.token))
@@ -132,6 +132,17 @@ pub fn lex(input: String) -> Vec<Token> {
                     _ => unreachable!(),
                 });
                 lexer.increment();
+            }
+            '.' => {
+                if !lexer.token.is_empty()
+                    && lexer.token.chars().all(|c| c.is_numeric())
+                    && lexer.pos + 1 < lexer.input.len()
+                    && lexer.input[lexer.pos + 1].is_numeric()
+                {
+                    lexer.push_and_increment('.');
+                } else {
+                    panic!("Unexpected '.' character")
+                }
             }
             _ => panic!("Unrecognized character : {}", curr_char),
         }
