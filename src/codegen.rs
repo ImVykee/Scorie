@@ -1,13 +1,14 @@
 use crate::{abstract_syntax_tree::*, type_checker};
 use std::fs::write;
 
-pub fn generate_rust(input: Vec<Expr>) {
-    let generator = type_checker::type_check(input).unwrap();
+pub fn generate_rust(input: Vec<Expr>) -> Result<(), Vec<String>> {
+    let generator = type_checker::type_check(input)?;
     let mut code = String::new();
     for expr in generator.root.clone() {
         code += &generator.generate(expr)
     }
-    write("output.rs", code).expect("Failed to write output file")
+    write("output.rs", code).expect("Failed to write output file");
+    Ok(())
 }
 
 pub struct CodeGenerator {
@@ -22,6 +23,7 @@ impl CodeGenerator {
         match expr {
             Expr::Literal(val) => self.generate_literal(val),
             Expr::BinaryOp { left, op, right } => self.generate_binaryop(left, op, right),
+            Expr::BooleanOp { left, op, right } => self.generate_booleanop(left, op, right),
             Expr::Call { function, args } => self.generate_funccall(function, args),
             Expr::Var { name } => format!("{}", name),
             Expr::Let { name, value } => self.generate_let(name, value),
@@ -41,7 +43,18 @@ impl CodeGenerator {
             Value::Int(int) => format!("{}", int),
             Value::Float(flt) => format!("{}", flt),
             Value::Str(string) => format!("\"{}\"", string),
+            Value::Bool(b) => format!("{}", b),
         }
+    }
+
+    fn generate_booleanop(&self, left: Box<Expr>, op: BooleanOp, right: Box<Expr>) -> String {
+        let left = self.generate(*left);
+        let right = self.generate(*right);
+        let op = match op {
+            BooleanOp::And => String::from("&&"),
+            BooleanOp::Or => String::from("||"),
+        };
+        format!("{} {} {}", left, op, right)
     }
 
     fn generate_binaryop(&self, left: Box<Expr>, op: BinaryOp, right: Box<Expr>) -> String {

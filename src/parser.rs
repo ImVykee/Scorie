@@ -57,6 +57,20 @@ impl Parser {
                     right: Box::new(right),
                 }
             }
+            Token::And | Token::Or => {
+                let op = match self.current() {
+                    Token::And => BooleanOp::And,
+                    Token::Or => BooleanOp::Or,
+                    _ => unreachable!(),
+                };
+                self.increment();
+                let right = self.parse_expression();
+                Expr::BooleanOp {
+                    left: Box::new(left),
+                    op,
+                    right: Box::new(right),
+                }
+            }
             _ => left,
         }
     }
@@ -77,7 +91,17 @@ impl Parser {
             Token::StringLit(s) => self.parse_stringlit(s),
             Token::LeftParen => self.parse_paren_operations(),
             Token::Identifier(elem) => self.parse_identifier(elem),
+            Token::Boolean(b) => self.parse_boolean(b),
             _ => panic!("Unknown token {:?}", self.input[self.pos]),
+        }
+    }
+
+    fn parse_boolean(&mut self, b: String) -> Expr {
+        self.increment();
+        match b.as_str() {
+            "True" => Expr::Literal(Value::Bool(true)),
+            "False" => Expr::Literal(Value::Bool(false)),
+            _ => unreachable!(),
         }
     }
 

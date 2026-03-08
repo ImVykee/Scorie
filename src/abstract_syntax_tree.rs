@@ -6,6 +6,11 @@ pub enum Expr {
         op: BinaryOp,
         right: Box<Expr>,
     },
+    BooleanOp {
+        left: Box<Expr>,
+        op: BooleanOp,
+        right: Box<Expr>,
+    },
     Call {
         function: String,
         args: Vec<Expr>,
@@ -37,6 +42,7 @@ pub enum Type {
     Int,
     Float,
     Str,
+    Bool,
     Unknown,
     Void,
 }
@@ -49,6 +55,7 @@ impl Type {
             Type::Str => String::from("String"),
             Type::Unknown => panic!("Unknown type made it into code generation phase"),
             Type::Void => String::from("()"),
+            Type::Bool => String::from("bool"),
         }
     }
 }
@@ -58,6 +65,7 @@ pub enum Value {
     Int(i32),
     Float(f64),
     Str(String),
+    Bool(bool),
 }
 
 impl Value {
@@ -66,6 +74,7 @@ impl Value {
             Value::Int(_) => Type::Int,
             Value::Float(_) => Type::Float,
             Value::Str(_) => Type::Str,
+            Value::Bool(_) => Type::Bool,
         }
     }
 }
@@ -77,4 +86,10 @@ pub enum BinaryOp {
     Mul,
     Div,
     Mod,
+}
+
+#[derive(Debug, Clone)]
+pub enum BooleanOp {
+    And,
+    Or,
 }

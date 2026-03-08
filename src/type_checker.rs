@@ -81,7 +81,7 @@ impl TypeChecker {
 
     fn check_expression(&mut self, expr: &Expr) -> Type {
         match expr {
-            Expr::Literal(e) => self.get_literal_type(e),
+            Expr::Literal(v) => v.parse_type(),
             Expr::BinaryOp { left, op, right } => {
                 let left_t = self.check_expression(left);
                 let right_t = self.check_expression(right);
@@ -96,6 +96,18 @@ impl TypeChecker {
                     }
                 }
                 self.resolve_type_priority(left_t, right_t)
+            }
+            Expr::BooleanOp { left, op, right } => {
+                let left_t = self.check_expression(left);
+                let right_t = self.check_expression(right);
+                if left_t != Type::Bool || right_t != Type::Bool {
+                    self.error(format!(
+                        "Boolean operations should have 2 bools not {} and {}",
+                        left_t.translate(),
+                        right_t.translate()
+                    ));
+                }
+                Type::Bool
             }
             Expr::Call { function, args } => self.check_call_type(function, args),
             Expr::Var { name } => self.check_var(name),
@@ -202,14 +214,6 @@ impl TypeChecker {
                 ));
                 Type::Unknown
             }
-        }
-    }
-
-    fn get_literal_type(&self, literal: &Value) -> Type {
-        match literal {
-            Value::Int(_) => Type::Int,
-            Value::Float(_) => Type::Float,
-            Value::Str(_) => Type::Str,
         }
     }
 
