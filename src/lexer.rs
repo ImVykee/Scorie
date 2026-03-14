@@ -11,8 +11,11 @@ pub enum Token {
     Let,
     Fn,
     Return,
+    Value,
     And,
     Or,
+    If,
+    Else,
 
     // Identifiers and literals
     Identifier(String),
@@ -65,8 +68,11 @@ impl Lexer {
             "let" => Token::Let,
             "fn" => Token::Fn,
             "return" => Token::Return,
+            "value" => Token::Value,
             "and" => Token::And,
             "or" => Token::Or,
+            "if" => Token::If,
+            "else" => Token::Else,
             _ => {
                 if self.token.chars().all(|c| c.is_numeric() || c == '.') {
                     Token::Number(String::from(&self.token))

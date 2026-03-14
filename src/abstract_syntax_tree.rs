@@ -1,10 +1,11 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Literal(Value),
     BinaryOp {
         left: Box<Expr>,
         op: BinaryOp,
         right: Box<Expr>,
+        r#type: Type,
     },
     BooleanOp {
         left: Box<Expr>,
@@ -32,9 +33,19 @@ pub enum Expr {
     Return {
         value: Option<Box<Expr>>,
     },
+    Value {
+        value: Option<Box<Expr>>,
+    },
+    If {
+        condition: Box<Expr>,
+        body: Box<Expr>,
+        r#else: Box<Expr>,
+    },
     Block {
         statements: Vec<Expr>,
+        returns: Box<Expr>,
     },
+    NotExist,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -53,14 +64,17 @@ impl Type {
             Type::Int => String::from("i32"),
             Type::Float => String::from("f64"),
             Type::Str => String::from("String"),
-            Type::Unknown => panic!("Unknown type made it into code generation phase"),
+            Type::Unknown => {
+                eprintln!("Debug info : {:?}", self);
+                panic!("Unknown type made it into code generation phase");
+            }
             Type::Void => String::from("()"),
             Type::Bool => String::from("bool"),
         }
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Int(i32),
     Float(f64),
@@ -79,7 +93,7 @@ impl Value {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOp {
     Add,
     Sub,
@@ -88,8 +102,13 @@ pub enum BinaryOp {
     Mod,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BooleanOp {
     And,
     Or,
+}
+#[derive(Debug, Clone)]
+pub struct FuncSignature {
+    pub param_types: Vec<Type>,
+    pub return_type: Type,
 }

@@ -23,6 +23,10 @@ impl Parser {
         self.pos += 1;
     }
 
+    fn decrement(&mut self) {
+        self.pos -= 1;
+    }
+
     fn current(&self) -> &Token {
         &self.input[self.pos]
     }
@@ -32,6 +36,7 @@ impl Parser {
             Token::Let => self.parse_let(),
             Token::Fn => self.parse_fn(),
             Token::Return => self.parse_return(),
+            Token::Value => self.parse_expression_return(),
             _ => self.parse_expression(),
         }
     }
@@ -55,6 +60,7 @@ impl Parser {
                     left: Box::new(left),
                     op,
                     right: Box::new(right),
+                    r#type: Type::Unknown,
                 }
             }
             Token::And | Token::Or => {
@@ -92,7 +98,25 @@ impl Parser {
             Token::LeftParen => self.parse_paren_operations(),
             Token::Identifier(elem) => self.parse_identifier(elem),
             Token::Boolean(b) => self.parse_boolean(b),
+            Token::If => self.parse_if(),
             _ => panic!("Unknown token {:?}", self.input[self.pos]),
+        }
+    }
+
+    fn parse_if(&mut self) -> Expr {
+        self.increment();
+        let conditions = self.parse_expression();
+        let expressions = self.parse_block();
+        let else_stmt = if self.current() == &Token::Else {
+            self.increment();
+            self.parse_block()
+        } else {
+            Expr::NotExist
+        };
+        Expr::If {
+            condition: Box::new(conditions),
+            body: Box::new(expressions),
+            r#else: Box::new(else_stmt),
         }
     }
 
@@ -144,7 +168,23 @@ impl Parser {
         match value {
             Expr::FuncDef { .. } => panic!("Cannot return a function definition"),
             Expr::Let { .. } => panic!("Cannot return a variable assignment"),
+            Expr::Value { .. } => panic!("Cannot return a 'Value' statement"),
+            Expr::Return { .. } => panic!("Cannot return a 'Return' statement"),
             _ => Expr::Return {
+                value: Some(Box::new(value)),
+            },
+        }
+    }
+
+    fn parse_expression_return(&mut self) -> Expr {
+        self.increment();
+        let value = self.parse_statement();
+        match value {
+            Expr::FuncDef { .. } => panic!("Cannot return a function definition"),
+            Expr::Let { .. } => panic!("Cannot return a variable assignment"),
+            Expr::Value { .. } => panic!("Cannot return a 'Value' statement"),
+            Expr::Return { .. } => panic!("Cannot return a 'Return' statement"),
+            _ => Expr::Value {
                 value: Some(Box::new(value)),
             },
         }
@@ -207,10 +247,7 @@ impl Parser {
         };
         let params: Vec<(String, Type)> = self.get_func_params_identifier();
         self.increment();
-        match self.current() {
-            Token::LeftBrace => self.increment(),
-            _ => panic!("Expected '{{' after function parameters"),
-        }
+
         let body = Box::new(self.parse_block());
         Expr::FuncDef {
             name,
@@ -223,11 +260,24 @@ impl Parser {
     fn parse_block(&mut self) -> Expr {
         // recursive
         let mut block: Vec<Expr> = Vec::new();
+        let mut returns = Expr::NotExist;
+        match self.current() {
+            Token::LeftBrace => self.increment(),
+            _ => panic!("Expected '{{' after function parameters"),
+        }
         while self.current() != &Token::RightBrace {
-            block.push(self.parse_statement());
+            if self.current() == &Token::Value {
+                returns = self.parse_statement();
+                block.push(returns.clone());
+            } else {
+                block.push(self.parse_statement());
+            }
         }
         self.increment();
-        Expr::Block { statements: block }
+        Expr::Block {
+            statements: block,
+            returns: Box::from(returns),
+        }
     }
 
     fn parse_let(&mut self) -> Expr {
