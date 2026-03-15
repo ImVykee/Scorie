@@ -55,6 +55,7 @@ cargo install --path .
 
 ## Usage
 ```bash
+cd <current directory>  
 scorie compile myfile.scorie output.rs  # Creates output.rs (also works without specifying file extensions)
 rustc output.rs                     # Creates executable
 ```
