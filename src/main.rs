@@ -16,8 +16,12 @@ fn main() {
     let cmd = &args[1];
     let mut file = args[2].clone();
     let mut output = args[3].clone();
-    file.push_str(".scorie");
-    output.push_str(".rs");
+    if !file.ends_with(".scorie") {
+        file.push_str(".scorie");
+    };
+    if !output.ends_with(".rs") {
+        output.push_str(".rs");
+    };
     match cmd.as_str() {
         "compile" => compile(&file, &output),
         _ => eprintln!("invalid command {}", cmd),
