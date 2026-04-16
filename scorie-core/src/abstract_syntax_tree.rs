@@ -1,3 +1,6 @@
+use crate::types::Type;
+use std::collections::HashMap;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Literal(Value),
@@ -46,32 +49,7 @@ pub enum Expr {
         returns: Box<Expr>,
     },
     NotExist,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Type {
-    Int,
-    Float,
-    Str,
-    Bool,
-    Unknown,
-    Void,
-}
-
-impl Type {
-    pub fn translate(&self) -> String {
-        match self {
-            Type::Int => String::from("i32"),
-            Type::Float => String::from("f64"),
-            Type::Str => String::from("String"),
-            Type::Unknown => {
-                eprintln!("Debug info : {:?}", self);
-                panic!("Unknown type made it into code generation phase");
-            }
-            Type::Void => String::from("()"),
-            Type::Bool => String::from("bool"),
-        }
-    }
+    EOL,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -79,6 +57,7 @@ pub enum Value {
     Int(i32),
     Float(f64),
     Str(String),
+    FStr(String),
     Bool(bool),
 }
 
@@ -87,7 +66,7 @@ impl Value {
         match self {
             Value::Int(_) => Type::Int,
             Value::Float(_) => Type::Float,
-            Value::Str(_) => Type::Str,
+            Value::Str(_) | Value::FStr(_) => Type::Str,
             Value::Bool(_) => Type::Bool,
         }
     }
@@ -112,3 +91,44 @@ pub struct FuncSignature {
     pub param_types: Vec<Type>,
     pub return_type: Type,
 }
+
+impl FuncSignature {
+    pub fn new(param_types: Vec<Type>, return_type: Type) -> Self {
+        FuncSignature {
+            param_types,
+            return_type,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ObjectDef {
+    attributes: HashMap<String, (String, Type)>, // Name, Value, Type
+    methods: HashMap<String, FuncSignature>,
+}
+
+// pub fn stdlib() -> Vec<(String, FuncSignature)> {
+//     vec![
+//         (
+//             String::from("print"),
+//             FuncSignature {
+//                 param_types: vec![Type::Str],
+//                 return_type: Type::Void,
+//             },
+//         ),
+//         (
+//             String::from("panic"),
+//             FuncSignature {
+//                 param_types: vec![Type::Str],
+//                 return_type: Type::Void,
+//             },
+//         ),
+//         (
+//             String::from("len"),
+//             FuncSignature {
+//                 param_types: vec![Type::Unknown],
+//                 return_type: Type::Int,
+//             },
+//         ),
+//     ]
+// }

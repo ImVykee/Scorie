@@ -1,5 +1,7 @@
 use crate::abstract_syntax_tree::*;
 use crate::codegen::CodeGenerator;
+use crate::stdlib::stdlib;
+use crate::types::Type;
 use std::collections::HashMap;
 
 pub fn type_check(input: Vec<Expr>) -> Result<CodeGenerator, Vec<String>> {
@@ -12,7 +14,12 @@ pub fn type_check(input: Vec<Expr>) -> Result<CodeGenerator, Vec<String>> {
     }
     type_checker.root = root;
     if type_checker.errors.is_empty() {
-        Ok(CodeGenerator::new(type_checker.root, type_checker.func_env))
+        // println!("Type checked successfully");
+        Ok(CodeGenerator::new(
+            type_checker.root,
+            type_checker.func_env,
+            type_checker.std,
+        ))
     } else {
         Err(type_checker.errors)
     }
@@ -22,6 +29,7 @@ struct TypeChecker {
     root: Vec<Expr>,
     var_env: Vec<HashMap<String, Type>>,
     func_env: HashMap<String, FuncSignature>,
+    std: stdlib,
     errors: Vec<String>,
     current_return_type: Option<Type>,
 }
@@ -32,6 +40,7 @@ impl TypeChecker {
             root: input,
             var_env: Vec::new(),
             func_env: HashMap::new(),
+            std: stdlib::init(),
             errors: Vec::new(),
             current_return_type: None,
         }
@@ -173,6 +182,7 @@ impl TypeChecker {
                 self.exit_scope();
                 Type::Void
             }
+            Expr::EOL => Type::Void,
             _ => self.check_expression(stmt),
         }
     }
@@ -197,8 +207,16 @@ impl TypeChecker {
     }
 
     fn check_call_type(&mut self, function: &String, args: &mut Vec<Expr>) -> Type {
-        let sig = self.func_env.get(function).unwrap();
+        let sig = if !self.std.functions.contains_key(function) {
+            self.func_env.get(function).unwrap()
+        } else {
+            self.std.get_function(function)
+        };
         let wanted_types = sig.param_types.clone();
+        let args_num = sig.param_types.len();
+        if args_num != args.len() {
+            panic!("expected {} arguments, found {}", args_num, args.len())
+        }
         let return_type = sig.return_type.clone();
         let mut called_types: Vec<Type> = Vec::new();
         for arg in args {

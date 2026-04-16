@@ -21,6 +21,7 @@ pub enum Token {
     Identifier(String),
     Number(String),
     StringLit(String),
+    FStringLit(String),
     Boolean(String),
 
     // Operators
@@ -40,8 +41,12 @@ pub enum Token {
     RightSqBrace, // ]
     Comma,        // ,
     Colon,        // :
+    Semicolon,    // ;
 
     EOF, // End Of File
+
+    // Utils
+    F_STRING_START,
 }
 
 impl Lexer {
@@ -85,16 +90,27 @@ impl Lexer {
         });
         self.clear_token();
     }
+
     pub fn handle_string(&mut self) {
+        let mut is_fstring = false;
+        if self.tokens.last().unwrap() == &Token::F_STRING_START {
+            is_fstring = true;
+        }
         self.increment();
         while self.pos < self.input.len() && self.input[self.pos] != '"' {
             self.read_char();
         }
-        self.tokens
-            .push(Token::StringLit(String::from(&self.token)));
+        if !is_fstring {
+            self.tokens
+                .push(Token::StringLit(String::from(&self.token)));
+        } else {
+            self.tokens
+                .push(Token::FStringLit(String::from(&self.token)));
+        }
         self.clear_token();
         self.increment();
     }
+
     pub fn increment(&mut self) {
         self.pos += 1;
     }
@@ -109,18 +125,37 @@ impl Lexer {
         self.flush();
         self.increment();
     }
+
+    fn decrement(&mut self) {
+        self.pos -= 1;
+    }
+
+    fn peek(&mut self) -> char {
+        self.increment();
+        let ret = self.input[self.pos];
+        self.decrement();
+        ret
+    }
 }
 
 pub fn lex(input: String) -> Vec<Token> {
     let mut lexer = Lexer::new(input.chars().collect());
     while lexer.pos < lexer.input.len() {
         let curr_char = lexer.input[lexer.pos];
+        if curr_char == 'f' {
+            let peeked = lexer.peek();
+            if peeked == '"' || peeked == '\'' {
+                lexer.tokens.push(Token::F_STRING_START);
+                lexer.increment();
+                continue;
+            }
+        }
         match curr_char {
             ' ' | '\t' | '\n' => lexer.flush_and_increment(),
-            'a'..='z' | 'A'..='Z' => lexer.push_and_increment(curr_char),
+            'a'..='z' | 'A'..='Z' | '_' => lexer.push_and_increment(curr_char),
             '0'..='9' => lexer.push_and_increment(curr_char),
             '"' | '\'' => lexer.handle_string(),
-            '(' | ')' | '{' | '}' | '[' | ']' | ',' | ':' => {
+            '(' | ')' | '{' | '}' | '[' | ']' | ',' | ':' | ';' => {
                 lexer.flush();
                 lexer.tokens.push(match curr_char {
                     '(' => Token::LeftParen,
@@ -131,6 +166,7 @@ pub fn lex(input: String) -> Vec<Token> {
                     ']' => Token::RightSqBrace,
                     ',' => Token::Comma,
                     ':' => Token::Colon,
+                    ';' => Token::Semicolon,
                     _ => unreachable!(),
                 });
                 lexer.increment();
@@ -163,5 +199,8 @@ pub fn lex(input: String) -> Vec<Token> {
         }
     }
     lexer.tokens.push(Token::EOF);
+    lexer.tokens.retain(|t| t != &Token::F_STRING_START);
+
+    // println!("Tokenized successfully : {:?}", lexer.tokens);
     lexer.tokens
 }

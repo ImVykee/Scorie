@@ -1,0 +1,11 @@
+[package]
+name = "scorie-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+scorie = {path = "../scorie-core"}
+
+[[bin]]
+name = "scorie"
+path = "src/main.rs"

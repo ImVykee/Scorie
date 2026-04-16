@@ -1,4 +1,4 @@
-use crate::{abstract_syntax_tree::*, lexer::Token};
+use crate::{abstract_syntax_tree::*, lexer::Token, types::Type};
 
 pub fn parse(input: Vec<Token>) -> Vec<Expr> {
     let mut parser = Parser::new(input);
@@ -6,6 +6,7 @@ pub fn parse(input: Vec<Token>) -> Vec<Expr> {
     while parser.current() != &Token::EOF {
         statements.push(parser.parse_statement());
     }
+    // println!("Parsed successfully");
     statements
 }
 
@@ -95,10 +96,15 @@ impl Parser {
                 Expr::Literal(Value::Int(val))
             }
             Token::StringLit(s) => self.parse_stringlit(s),
+            Token::FStringLit(s) => self.parse_fstringlit(s),
             Token::LeftParen => self.parse_paren_operations(),
             Token::Identifier(elem) => self.parse_identifier(elem),
             Token::Boolean(b) => self.parse_boolean(b),
             Token::If => self.parse_if(),
+            Token::Semicolon => {
+                self.increment();
+                Expr::EOL
+            }
             _ => panic!("Unknown token {:?}", self.input[self.pos]),
         }
     }
@@ -132,6 +138,11 @@ impl Parser {
     fn parse_stringlit(&mut self, s: String) -> Expr {
         self.increment();
         Expr::Literal(Value::Str(s))
+    }
+
+    fn parse_fstringlit(&mut self, s: String) -> Expr {
+        self.increment();
+        Expr::Literal(Value::FStr(s))
     }
 
     fn parse_identifier(&mut self, elem: String) -> Expr {
@@ -179,6 +190,9 @@ impl Parser {
     fn parse_expression_return(&mut self) -> Expr {
         self.increment();
         let value = self.parse_statement();
+        if self.input[self.pos + 1] == Token::Semicolon {
+            self.input.remove(self.pos + 1);
+        };
         match value {
             Expr::FuncDef { .. } => panic!("Cannot return a function definition"),
             Expr::Let { .. } => panic!("Cannot return a variable assignment"),

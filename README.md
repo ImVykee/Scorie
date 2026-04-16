@@ -17,24 +17,31 @@ The project is in its very early phases, it does not include any standard librar
 - Arithmetic and boolean operations
 - If/else statements
 - Explicit `return` (functions) and `value` (blocks) keywords
+- Builtin functions : `println`, `len`, `panic`
+- F-string parsing : 
+```scorie 
+let x = 1;
+let fstring = f"this is {x} fstring";  
+```  
 
 **Syntax:**
-- Python-like: no semicolons, newlines as statement terminators
+- Python like simplicity  
 - Curly braces for blocks
+- Semicolons as line terminators  
 - Strong typing with type annotations on function parameters only
 
 ## Example
 ```scorie
 fn add(x: Int, y: Int) {
-    return x + y
+    return x + y;
 }
 
 fn main() {
-    let x = add(5, 2)
+    let x = add(5, 2);
     let result = if x > 5 {
-        value 10
+        value 10;
     } else {
-        value 0
+        value 0;
     }
 }
 
@@ -44,13 +51,13 @@ Compiles to Rust, then the user must use `rustc` to create an executable.
 
 ## What's Next
 
-Currently working on a web playground. Language features will expand based on what's fun to build.
+Likely backend architecture and optimizations. Language features will expand based on what's fun to build
 
 ## Installation
 
 Requires Rust toolchain installed.
 ```bash
-cargo install --path .
+cargo install --path ./scorie-cli
 ```
 
 ## Usage
