@@ -1,3 +1,7 @@
+# Important
+This project has been discontinued for the near future, the code debt accumulated from the poor decisions of my younger self, a highschooler, is just too big to handle now when adding more complex systems (like OOP), it'd require a near complete rewrite, which, at this point, might as well make a whole new project, which is what i will be doing. I learned a lot from this project and i will keep it up on my github as it is still my most impressive project so far and a proof of how far i've come for future me. 
+
+
 # Scorie
 
 A higher-level programming language that compiles to Rust.
